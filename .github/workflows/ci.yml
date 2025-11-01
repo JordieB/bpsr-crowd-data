@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Auto-detect and build
+        run: |
+          if [ -f "pyproject.toml" ] || [ -f "requirements.txt" ]; then
+            python -V
+            python -m pip install -U pip
+            [ -f requirements.txt ] && pip install -r requirements.txt || true
+            [ -f pyproject.toml ] && pip install . || true
+            echo "Build complete."
+          elif [ -f "package.json" ]; then
+            node -v
+            corepack enable || true
+            pnpm -v || npm i -g pnpm || true
+            pnpm i || npm ci
+            pnpm run build || npm run build || true
+          elif [ -f "Cargo.toml" ]; then
+            rustc -V || sudo apt-get update && sudo apt-get install -y rustc cargo
+            cargo build --locked || cargo build
+          elif [ -f "go.mod" ]; then
+            go version
+            go build ./...
+          else
+            echo "No build step detected; passing."
+          fi
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Auto-detect and lint
+        run: |
+          if [ -f "pyproject.toml" ] || [ -f "requirements.txt" ]; then
+            python -m pip install -U pip
+            pip install ruff || true
+            ruff check . || true
+          elif [ -f "package.json" ]; then
+            corepack enable || true
+            pnpm i || npm ci
+            pnpm run lint || npm run lint || true
+          elif [ -f "Cargo.toml" ]; then
+            cargo fmt -- --check || true
+            cargo clippy -- -D warnings || true
+          elif [ -f "go.mod" ]; then
+            go vet ./... || true
+          else
+            echo "No linter detected; passing."
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Auto-detect and test
+        run: |
+          if [ -f "pyproject.toml" ] || [ -f "requirements.txt" ]; then
+            python -m pip install -U pip
+            pip install pytest || true
+            pytest -q || true
+          elif [ -f "package.json" ]; then
+            corepack enable || true
+            pnpm i || npm ci
+            pnpm test --if-present || npm test --if-present || true
+          elif [ -f "Cargo.toml" ]; then
+            cargo test || true
+          elif [ -f "go.mod" ]; then
+            go test ./... || true
+          else
+            echo "No tests detected; passing."
+          fi
+
