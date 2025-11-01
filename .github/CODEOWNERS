@@ -1,8 +1,2 @@
-* @JordieB
-
-# Optional: add path-specific owners below
-
-# /docs/ @JordieB
-
-# /scripts/ @JordieB
-
+# Default owner for all files
+* @your-handle

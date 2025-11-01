@@ -38,11 +38,11 @@ def main() -> None:
     env = os.environ.copy()
     env.setdefault("DATABASE_URL", DATABASE_URL)
 
-    run_cmd([sys.executable, "-m", "app.cli", "apply"], env)
-    run_cmd([sys.executable, "-m", "app.cli", "seed-key", API_KEY, "--label", "smoke"], env)
+    run_cmd([sys.executable, "-m", "bpsr_crowd_data.cli_db", "apply"], env)
+    run_cmd([sys.executable, "-m", "bpsr_crowd_data.cli_db", "seed-key", API_KEY, "--label", "smoke"], env)
 
     proc = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "app.main:app", "--port", str(BASE_PORT)],
+        [sys.executable, "-m", "uvicorn", "bpsr_crowd_data.main:app", "--port", str(BASE_PORT)],
         env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,

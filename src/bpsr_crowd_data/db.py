@@ -54,25 +54,8 @@ async def apply_migrations() -> None:
             await conn.execute(text(statement))
 
 
-async def ensure_default_api_key() -> None:
-    from .settings import get_settings
-
-    settings = get_settings()
-    if not settings.default_api_key:
-        return
-
-    async with engine.begin() as conn:
-        await conn.execute(
-            text(
-                "INSERT INTO api_keys(key, label) VALUES (:key, :label) ON CONFLICT (key) DO NOTHING"
-            ),
-            {"key": settings.default_api_key, "label": "default"},
-        )
-
-
 async def init_db() -> None:
     await apply_migrations()
-    await ensure_default_api_key()
 
 
 def run_sync(func) -> None:

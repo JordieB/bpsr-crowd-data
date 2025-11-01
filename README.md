@@ -17,24 +17,37 @@ Minimal FastAPI app that accepts community submissions for Blue Protocol: Star R
 12. CORS + rate limiting implemented in-memory to avoid external dependencies.
 13. CLI utilities reuse the same migration SQL so Fly release commands stay trivial.
 14. If Fly.io/Supabase free tiers change, swap in Railway + Neon (both have free hobby tiers) without touching application code.
-15. Everything remains under the MIT license for easy reuse.
+15. Everything remains under the [AGPL-3.0-or-later](https://www.gnu.org/licenses/agpl-3.0.en.html) license for community reciprocity.
 
 ## Quickstart (local)
 ```bash
 cp .env.example .env
 poetry install
 poetry run make db-local
-poetry run python -m app.cli seed-key local-dev-key
+poetry run python -m bpsr_crowd_data.cli_db seed-key local-dev-key
 poetry run make dev
-poetry run make smoke
+poetry run bpsr-crowd-smoke
 ```
+
+**Note:** Python/Poetry commands work identically on Windows, macOS, and Linux. If `make` isn't available (common on Windows), see [Makefile](Makefile) for direct command equivalents, or run: `poetry run python -m bpsr_crowd_data.cli_db apply` (replaces `make db-local`) and `poetry run uvicorn bpsr_crowd_data.main:app --host 0.0.0.0 --port 8000` (replaces `make dev`). Create a `.env` file manually if needed (no `.env.example` provided).
 
 Set `SMOKE_API_KEY=local-dev-key` when hitting write endpoints locally. Open http://127.0.0.1:8000/docs for the interactive API.
 
 ## Deploy on Fly.io (free tier)
-1. Install the Fly CLI (`curl -L https://fly.io/install.sh | sh`) and log in: `fly auth signup` then `fly auth login`.
+1. Install the Fly CLI:
+   - **Linux/macOS**: `curl -L https://fly.io/install.sh | sh`
+   - **Windows (PowerShell)**: `pwsh -Command "iwr https://fly.io/install.ps1 -useb | iex"`
+   
+   After installation, restart your terminal/PowerShell session, or refresh PATH in the current session:
+   ```powershell
+   $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+   ```
+   
+   Then (optional) sign up and login: `flyctl auth signup` >> `flyctl auth login` (or `fly auth signup` / `fly auth login` if alias is configured).
 2. Create a Supabase project (free tier) and copy the Postgres connection string (replace password placeholders). Set `DATABASE_URL` to that DSN.
-3. Provision at least one API key: `fly secrets set DEFAULT_API_KEY=$(openssl rand -hex 16)` to auto-seed on startup.
+3. Provision at least one API key to auto-seed on startup:
+   - **Linux/macOS**: `fly secrets set DEFAULT_API_KEY=$(openssl rand -hex 16)`
+   - **Windows (PowerShell)**: `fly secrets set DEFAULT_API_KEY=(-join ((48..57 + 97..102 | Get-Random -Count 32 | ForEach-Object { [char]$_ })))`
 4. Configure allowed POST origins (optional): `fly secrets set API_ALLOWED_ORIGINS="https://yourdomain"`.
 5. Deploy:
    ```bash
@@ -50,8 +63,21 @@ Set `SMOKE_API_KEY=local-dev-key` when hitting write endpoints locally. Open htt
      -d '{"source":"manual","category":"boss_event","payload":{}}'
    curl -s "https://<your-app>.fly.dev/v1/submissions/recent?category=boss_event&limit=1"
    ```
+   
+   **Windows (PowerShell)**:
+   ```powershell
+   curl.exe -s https://<your-app>.fly.dev/health
+   $env:DEFAULT_API_KEY = "<your-key>"
+   curl.exe -s -X POST https://<your-app>.fly.dev/v1/ingest `
+     -H "X-API-Key: $env:DEFAULT_API_KEY" -H "Content-Type: application/json" `
+     -d '{\"source\":\"manual\",\"category\":\"boss_event\",\"payload\":{}}'
+   curl.exe -s "https://<your-app>.fly.dev/v1/submissions/recent?category=boss_event&limit=1"
+   ```
 
 ## API usage
+
+**Note:** `curl` works on Windows 10+. For PowerShell, use `curl.exe` or `Invoke-WebRequest` with `$env:API_KEY` syntax instead of `$API_KEY`.
+
 ```bash
 # Health
 curl -s https://<host>/health
@@ -80,8 +106,9 @@ curl -s -X POST https://<host>/v1/ingest \
 - Unknown fields are preserved in `payload` JSON for future enrichment.
 
 ## Smoke checks
-- Python: `poetry run make smoke` boots a temp API, seeds a key, ingests, and verifies retrieval.
-- Bash: `SMOKE_API_KEY=<key> BASE_URL=http://127.0.0.1:8000 scripts/smoke.sh` assumes a running server with that key inserted.
+- Cross-platform CLI: `poetry run bpsr-crowd-smoke` boots a temp API, seeds a key, ingests, and verifies retrieval. Works on all platforms.
+- Python script: `poetry run make smoke` (same as above via Makefile).
+- Bash: `SMOKE_API_KEY=<key> BASE_URL=http://127.0.0.1:8000 scripts/smoke.sh` assumes a running server with that key inserted. Requires bash/WSL on Windows.
 
 ## Limits & next steps
 - Free tiers mean limited CPU (256MB VM) and 500MB Postgres storage; prune old data or archive JSONL exports regularly.
