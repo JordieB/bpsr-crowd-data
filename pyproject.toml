@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "bpsr-crowd-data"
+version = "0.1.0"
+description = "Minimal FastAPI service for crowdsourcing BPSR gameplay data"
+authors = ["BPSR Data Maintainers <maintainers@example.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+sqlalchemy = "^2.0.25"
+asyncpg = "^0.29.0"
+aiosqlite = "^0.19.0"
+pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+python-dotenv = "^1.0.0"
+httpx = "^0.25.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.12.0"
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"
