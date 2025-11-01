@@ -1,0 +1,62 @@
+[project]
+name = "bpsr-crowd-data"
+version = "0.1.0"
+description = "Minimal FastAPI service for crowdsourcing BPSR gameplay data"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "AGPL-3.0-or-later"}
+authors = [
+    {name = "BPSR Data Maintainers", email = "maintainers@example.com"}
+]
+keywords = ["fastapi", "data-collection", "api"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "sqlalchemy>=2.0.25",
+    "asyncpg>=0.29.0",
+    "aiosqlite>=0.19.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.12.0",
+]
+
+[project.scripts]
+bpsr-crowd-smoke = "bpsr_crowd_data.cli:smoke"
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = true
+packages = [{include = "bpsr_crowd_data", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+sqlalchemy = "^2.0.25"
+asyncpg = "^0.29.0"
+aiosqlite = "^0.19.0"
+pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+python-dotenv = "^1.0.0"
+httpx = "^0.25.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.12.0"
+pytest = "^7.0.0"
+pytest-asyncio = "^0.21.0"
